@@ -1,12 +1,12 @@
 import diagnosisData from "../data/diagnoses.ts";
 import patientData from "../data/patients.ts";
+import {z} from 'zod'
 import {
   type Diagnosis,
   type Patient,
   type SafePatientData,
   type NewPatient,
   GenderValues,
-  type Gender,
 } from "../types.ts";
 const diagnoses: Diagnosis[] = diagnosisData as Diagnosis[];
 const patients: Patient[] = patientData as Patient[];
@@ -24,10 +24,10 @@ const getPatients = (): SafePatientData[] => {
   }));
 };
 
-const isString = (text: unknown): text is string => {
+/*const isString = (text: unknown): text is string => {
   return typeof text === "string" || text instanceof String;
 };
-const parseText = (text: unknown, name: string): string => {
+/*const parseText = (text: unknown, name: string): string => {
   if (!text || !isString(text)) {
     throw new Error(`Incorrect or missing ${name}`);
   }
@@ -36,44 +36,35 @@ const parseText = (text: unknown, name: string): string => {
 const isDate = (date: string): boolean => {
   return Boolean(Date.parse(date));
 };
+/*
 const isGender = (param: string): param is Gender => {
   return (Object.values(GenderValues) as string[]).includes(param);
 };
-const parseGender = (gender: unknown): Gender => {
+/*const parseGender = (gender: unknown): Gender => {
   if (!isString(gender) || !isGender(gender)) {
     throw new Error("Incorrect or missing gender");
   }
 
   return gender;
-};
-const parseDate = (date: unknown): string => {
+};\
+*/
+/*const parseDate = (date: unknown): string => {
   if (!date || !isString(date) || !isDate(date)) {
     throw new Error("Incorrect or missing date: " + date);
   }
   return date;
 };
+*/
+ export const newEntrySchema =z.object( {
+      name: z.string(),
+      dateOfBirth: z.iso.date(),
+      gender: z.enum(GenderValues),
+      ssn: z.string(),
+      occupation: z.string(),
+    });
 const parseNewPatientEntry = (object: unknown): NewPatient => {
-  if (!object || typeof object !== "object") {
-    throw new Error("Incorect or missing data");
-  }
 
-  if (
-    "name" in object &&
-    "dateOfBirth" in object &&
-    "gender" in object &&
-    "occupation" in object &&
-    "ssn" in object
-  ) {
-    const newEntry: NewPatient = {
-      name: parseText(object.name, "name"),
-      dateOfBirth: parseDate(object.dateOfBirth),
-      gender: parseGender(object.gender),
-      ssn: parseText(object.ssn, "name"),
-      occupation: parseText(object.occupation, "name"),
-    };
-    return newEntry;
-  }
-  throw new Error("Incorrect data: some fields are missing");
+  return newEntrySchema.parse(object)
 };
 const savePatient = (patient: Patient): Patient => {
   patients.concat(patient);
