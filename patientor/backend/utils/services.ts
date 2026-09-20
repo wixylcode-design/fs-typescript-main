@@ -1,10 +1,12 @@
 import diagnosisData from "../data/diagnoses.ts";
 import patientData from "../data/patients.ts";
-import type {
-  Diagnosis,
-  Patient,
-  SafePatientData,
-  NewPatient,
+import {
+  type Diagnosis,
+  type Patient,
+  type SafePatientData,
+  type NewPatient,
+  GenderValues,
+  type Gender,
 } from "../types.ts";
 const diagnoses: Diagnosis[] = diagnosisData as Diagnosis[];
 const patients: Patient[] = patientData as Patient[];
@@ -34,7 +36,16 @@ const parseText = (text: unknown, name: string): string => {
 const isDate = (date: string): boolean => {
   return Boolean(Date.parse(date));
 };
+const isGender = (param: string): param is Gender => {
+  return (Object.values(GenderValues) as string[]).includes(param);
+};
+const parseGender = (gender: unknown): Gender => {
+  if (!isString(gender) || !isGender(gender)) {
+    throw new Error("Incorrect or missing gender");
+  }
 
+  return gender;
+};
 const parseDate = (date: unknown): string => {
   if (!date || !isString(date) || !isDate(date)) {
     throw new Error("Incorrect or missing date: " + date);
@@ -56,7 +67,7 @@ const parseNewPatientEntry = (object: unknown): NewPatient => {
     const newEntry: NewPatient = {
       name: parseText(object.name, "name"),
       dateOfBirth: parseDate(object.dateOfBirth),
-      gender: parseText(object.gender, `gender`),
+      gender: parseGender(object.gender),
       ssn: parseText(object.ssn, "name"),
       occupation: parseText(object.occupation, "name"),
     };
@@ -64,14 +75,14 @@ const parseNewPatientEntry = (object: unknown): NewPatient => {
   }
   throw new Error("Incorrect data: some fields are missing");
 };
-const savePatient = (patient:Patient):Patient => {
-patients.concat(patient)
-return patient
-}
+const savePatient = (patient: Patient): Patient => {
+  patients.concat(patient);
+  return patient;
+};
 
 export default {
   getDiagnoses,
   getPatients,
   parseNewPatientEntry,
-  savePatient
+  savePatient,
 };
